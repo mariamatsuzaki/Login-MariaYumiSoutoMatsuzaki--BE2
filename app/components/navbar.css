@@ -1,0 +1,37 @@
+nav {
+  width: 100%;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #fcfa8c 0%, #f4ffb4 100%);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+nav img {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+}
+
+nav a {
+  text-decoration: none;
+  color: #272100;
+  font-weight: 500;
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+nav a:hover {
+  color: #ff8e04;
+  transform: translateY(-2px);
+}
+
+nav a:active {
+  background-color: rgba(192, 138, 21, 0.2);
+}
