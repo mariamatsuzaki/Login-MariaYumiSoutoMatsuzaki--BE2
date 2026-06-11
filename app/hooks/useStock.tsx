@@ -1,84 +1,72 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import api from '../lib/api';
-import { Produto } from '../types/produtos';
+import { Estoque } from '../types/estoque';
 import { useRouter } from 'next/navigation';
 
-export function useStock() {
-    const [produtos, setProdutos] = useState<Produto[]>([]);
+export function useEstoque(){
     const [loading, setLoading] = useState(false);
     const router = useRouter();
 
-    // Estados para o formulário (seguindo seu padrão de states separados)
-    const [nome, setNome] = useState('');
-    const [descricao, setDescricao] = useState('');
-    const [preco, setPreco] = useState('');
-    const [url, setUrl] = useState('');
+    const [localizacao, setLocalizacao] = useState('');
+    const [quantidade, setQuantidade] = useState('');
+    const [idProduto, setIdProduto] = useState('');
     const [editandoId, setEditandoId] = useState<number | null>(null);
 
-    // GET - Listar
-    const listarProdutos = useCallback(async () => {
+    const buscarEstoquePorId = async (id: number) => {
         setLoading(true);
         try {
-            const resposta = await api.get('/produtos/');
-            setProdutos(resposta.data);
+            const resposta = await api.get(`/estoque/${id}`);
+            if (resposta.data) prepararEdicao(resposta.data);
         } catch (error) {
-            alert("erro");
+            alert("Erro ao buscar os dados do estoque.");
         } finally {
             setLoading(false);
         }
-    }, []);
+    };
 
-    // POST / PUT - Salvar
     const salvar = async (e: React.FormEvent) => {
         e.preventDefault();
-        const dados: Produto = { nome, descricao, preco: Number(preco), url };
+        const dados = {
+            localizacao,
+            quantidade: Number(quantidade),
+            produto: { id: Number(idProduto) } // Vinculando ao produto via Jackson WRITE_ONLY
+        };
 
         try {
             if (editandoId) {
-                await api.put(`/produtos/${editandoId}`, dados);
+                await api.put(`/estoque/${editandoId}`, dados);
             } else {
-                await api.post('/produtos/', dados);
+                await api.post('/estoque/', dados);
             }
             limparFormulario();
-alert("produto cadastrado!")
+            alert("Estoque atualizado com sucesso!");
             router.push('/dashboard');
         } catch (error) {
-alert("erro ao adicionar o estoque")
+            alert("Erro ao salvar estoque.");
         }
     };
 
-    // DELETE
-    const excluir = async (id: number) => {
-        if (!confirm("Excluir este produto?")) return;
-        try {
-            await api.delete(`/produtos/${id}`);
-            listarProdutos();
-        } catch (error) {
-    alert("erro ao cadastrar o produto")
-        }
-    };
-
-    const prepararEdicao = (p: Produto) => {
-        setEditandoId(p.id!);
-        setNome(p.nome);
-        setDescricao(p.descricao);
-        setPreco(p.preco.toString());
-        setUrl(p.url);
+    const prepararEdicao = (e: Estoque) => {
+        setEditandoId(e.id!);
+        setLocalizacao(e.localizacao);
+        setQuantidade(e.quantidade.toString());
+        // Trata a leitura do ID dependendo do retorno da API
+        const prodId = e.produto ? e.produto.id : (e as any).id_produto;
+        setIdProduto(prodId ? prodId.toString() : '');
     };
 
     const limparFormulario = () => {
         setEditandoId(null);
-        setNome('');
-        setDescricao('');
-        setPreco('');
-        setUrl('');
+        setLocalizacao('');
+        setQuantidade('');
+        setIdProduto('');
     };
 
     return {
-        produtos, loading, listarProdutos, salvar, excluir, prepararEdicao,
-        nome, setNome, descricao, setDescricao, preco, setPreco, url, setUrl,
+        loading, salvar, buscarEstoquePorId,
+        localizacao, setLocalizacao, quantidade, setQuantidade, idProduto, setIdProduto,
         editandoId, limparFormulario
     };
 }
